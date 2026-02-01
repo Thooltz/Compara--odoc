@@ -15,8 +15,8 @@ export function compareDocuments(
   compareSection('body', template.sections.body, document.sections.body, options, issues);
   compareSection('footer', template.sections.footer, document.sections.footer, options, issues);
   compareImages(template, document, options, issues);
-  checkRequiredWords(template, document, options, issues);
-  checkForbiddenWords(template, document, options, issues);
+  checkRequiredWords(document, options, issues);
+  checkForbiddenWords(document, options, issues);
 
   const summary = generateSummary(issues);
 
@@ -38,7 +38,7 @@ export function compareDocuments(
 function compareStructure(
   template: DocumentStructure,
   document: DocumentStructure,
-  options: CompareOptions,
+  _options: CompareOptions,
   issues: Issue[]
 ): void {
   const templateHasHeader = !!template.sections.header;
@@ -94,7 +94,6 @@ function compareParagraphs(
     issues.push(createIssue(severity, 'structure', { section: location, blockIndex: 0 }, `Quantidade de parágrafos diferente em ${location}`, undefined, `${templateCount} parágrafos`, `${documentCount} parágrafos`));
   }
 
-  const minCount = Math.min(templateCount, documentCount);
   const usedIndices = new Set<number>();
 
   for (let i = 0; i < templateParas.length; i++) {
@@ -178,7 +177,7 @@ function compareTables(
   location: 'header' | 'body' | 'footer',
   templateTables: any[],
   documentTables: any[],
-  options: CompareOptions,
+  _options: CompareOptions,
   issues: Issue[]
 ): void {
   const templateCount = templateTables.length;
@@ -254,7 +253,6 @@ function compareImages(
 }
 
 function checkRequiredWords(
-  template: DocumentStructure,
   document: DocumentStructure,
   options: CompareOptions,
   issues: Issue[]
@@ -283,7 +281,6 @@ function checkRequiredWords(
 }
 
 function checkForbiddenWords(
-  template: DocumentStructure,
   document: DocumentStructure,
   options: CompareOptions,
   issues: Issue[]
