@@ -61,34 +61,35 @@ export function FileDropzone({ label, file, onFileSelect }: FileDropzoneProps) {
       >
         {file ? (
           <div className="file-info">
+            <div className="file-icon-wrapper">
+              {file.fileType === 'pdf' ? '📄' : '📝'}
+            </div>
             <div className="file-name">{file.name}</div>
             <div className="file-meta">
-              <span>{formatFileSize(file.size)}</span>
-              <span>•</span>
-              <span>{formatDate(file.lastModified)}</span>
+              <span className="file-meta-item">📦 {formatFileSize(file.size)}</span>
+              <span className="file-meta-item">🕒 {formatDate(file.lastModified)}</span>
               {file.fileType && (
-                <>
-                  <span>•</span>
-                  <span className="file-type">{file.fileType.toUpperCase()}</span>
-                </>
+                <span className="file-type-badge">{file.fileType.toUpperCase()}</span>
               )}
             </div>
             {file.status === 'error' && file.error && (
-              <div className="file-error">{file.error}</div>
+              <div className="file-error">❌ {file.error}</div>
             )}
             {file.status === 'ok' && (
-              <div className="file-status-ok">✓ Arquivo válido</div>
+              <div className="file-status-ok">✅ Arquivo válido e pronto para comparação</div>
             )}
             {file.status === 'loading' && (
-              <div className="file-status-loading">Carregando...</div>
+              <div className="file-status-loading">⏳ Processando arquivo...</div>
             )}
           </div>
         ) : (
           <div className="file-dropzone-empty">
-            <div className="file-dropzone-icon">📄</div>
+            <div className="file-dropzone-icon">📎</div>
             <div className="file-dropzone-text">
-              Arraste um arquivo (PDF, DOCX, PNG, JPG) aqui ou clique para selecionar
+              <strong>Arraste um arquivo aqui</strong>
+              <span>ou clique para selecionar</span>
             </div>
+            <div className="file-dropzone-hint">Formatos aceitos: PDF ou DOCX • Tamanho máximo: 20MB</div>
             <input
               ref={fileInputRef}
               type="file"

@@ -34,20 +34,24 @@ export function DiffPanel({
         <div className="diff-panel-empty">Nenhuma diferença encontrada</div>
       ) : (
         <div className="diff-items">
-          {filteredIssues.map((issue) => (
-            <div
-              key={issue.id}
-              className={`diff-item ${selectedIssue?.id === issue.id ? 'selected' : ''}`}
-              onClick={() => onIssueSelect(issue)}
-              style={{
-                borderLeftColor: getSeverityColor(issue.severity)
-              }}
-            >
-              <div className="diff-item-header">
-                <span className="diff-item-icon">{getCategoryIcon(issue.category)}</span>
-                <span className="diff-item-message">{issue.message}</span>
-                <span className="diff-item-severity">{issue.severity}</span>
-              </div>
+          {filteredIssues.map((issue, index) => {
+            const isSelected = selectedIssue?.id === issue.id;
+            const issueNumber = index + 1;
+            return (
+              <div
+                key={issue.id}
+                className={`diff-item ${isSelected ? 'selected' : ''}`}
+                onClick={() => onIssueSelect(issue)}
+                style={{
+                  borderLeftColor: getSeverityColor(issue.severity)
+                }}
+              >
+                <div className="diff-item-header">
+                  <span className="diff-item-number">{issueNumber}</span>
+                  <span className="diff-item-icon">{getCategoryIcon(issue.category)}</span>
+                  <span className="diff-item-message">{issue.message}</span>
+                  <span className={`diff-item-severity ${issue.severity}`}>{issue.severity}</span>
+                </div>
               <div className="diff-item-path">
                 {issue.location.section}[{issue.location.blockIndex}]
               </div>
@@ -55,7 +59,8 @@ export function DiffPanel({
                 <div className="diff-item-hint">{issue.hint}</div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

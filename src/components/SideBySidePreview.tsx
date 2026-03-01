@@ -11,6 +11,8 @@ interface SideBySidePreviewProps {
   scrollSync?: boolean;
   showOnlyDifferences?: boolean;
   differences?: Issue[];
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export function SideBySidePreview({
@@ -22,7 +24,9 @@ export function SideBySidePreview({
   onIssueSelect,
   scrollSync: _scrollSync = false,
   showOnlyDifferences = false,
-  differences = []
+  differences = [],
+  currentPage = 1,
+  onPageChange
 }: SideBySidePreviewProps) {
   const renderParagraphs = (section: any, location: 'header' | 'body' | 'footer', _isTemplate: boolean) => {
     if (!section) return null;
@@ -78,7 +82,32 @@ export function SideBySidePreview({
         <div className="preview-content" id="template-preview">
           {template ? (
             template.fileType === 'pdf' ? (
-              <PdfPreview file={templateFile || null} pageNumber={1} />
+              <>
+                <div className="pdf-page-controls">
+                  <button 
+                    className="btn-page-nav" 
+                    onClick={() => onPageChange && onPageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage <= 1}
+                  >
+                    ←
+                  </button>
+                  <span className="page-indicator">Página {currentPage} / {template.pageCount || 1}</span>
+                  <button 
+                    className="btn-page-nav" 
+                    onClick={() => onPageChange && onPageChange(Math.min(template.pageCount || 1, currentPage + 1))}
+                    disabled={currentPage >= (template.pageCount || 1)}
+                  >
+                    →
+                  </button>
+                </div>
+                <PdfPreview 
+                  file={templateFile || null} 
+                  pageNumber={currentPage}
+                  differences={differences}
+                  selectedIssue={selectedIssue}
+                  documentStructure={template}
+                />
+              </>
             ) : (
               <>
                 {template.sections.header && (
@@ -112,7 +141,32 @@ export function SideBySidePreview({
         <div className="preview-content" id="document-preview">
           {document ? (
             document.fileType === 'pdf' ? (
-              <PdfPreview file={documentFile || null} pageNumber={1} />
+              <>
+                <div className="pdf-page-controls">
+                  <button 
+                    className="btn-page-nav" 
+                    onClick={() => onPageChange && onPageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage <= 1}
+                  >
+                    ←
+                  </button>
+                  <span className="page-indicator">Página {currentPage} / {document.pageCount || 1}</span>
+                  <button 
+                    className="btn-page-nav" 
+                    onClick={() => onPageChange && onPageChange(Math.min(document.pageCount || 1, currentPage + 1))}
+                    disabled={currentPage >= (document.pageCount || 1)}
+                  >
+                    →
+                  </button>
+                </div>
+                <PdfPreview 
+                  file={documentFile || null} 
+                  pageNumber={currentPage}
+                  differences={differences}
+                  selectedIssue={selectedIssue}
+                  documentStructure={document}
+                />
+              </>
             ) : (
               <>
                 {document.sections.header && (

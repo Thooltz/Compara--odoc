@@ -109,10 +109,16 @@ export function Home() {
   return (
     <div className="page home-page">
       <div className="container">
-        <h1>Comparador de Documentos Word</h1>
-        <p className="subtitle">Compare um documento DOCX com um template e identifique diferenças</p>
-        <div className="info-banner">
-          <strong>ℹ️ Na V1 tudo roda local, nada é enviado para servidor.</strong>
+        <div className="home-hero">
+          <h1>📄 Comparador de Documentos</h1>
+          <p className="subtitle">Compare documentos PDF ou DOCX lado a lado e identifique diferenças automaticamente</p>
+          <div className="info-banner">
+            <div className="info-banner-icon">🔒</div>
+            <div className="info-banner-content">
+              <strong>100% Local e Seguro</strong>
+              <span>Todos os arquivos são processados no seu navegador. Nada é enviado para servidor.</span>
+            </div>
+          </div>
         </div>
 
         <div className="upload-section">
@@ -256,7 +262,7 @@ export function Home() {
             onClick={handleOpenCompare}
             disabled={!canCompare}
           >
-            Abrir Comparação
+            🔍 Iniciar Comparação
           </button>
         </div>
       </div>

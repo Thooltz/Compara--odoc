@@ -27,6 +27,7 @@ export function Compare() {
   const [scrollSync, setScrollSync] = useState(true);
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
   const [currentIssueIndex, setCurrentIssueIndex] = useState(-1);
+  const [currentPage, setCurrentPage] = useState(1);
   const templatePreviewRef = useRef<HTMLDivElement>(null);
   const documentPreviewRef = useRef<HTMLDivElement>(null);
 
@@ -121,6 +122,68 @@ export function Compare() {
     return severityMatch && categoryMatch && searchMatch;
   }) || [];
 
+  // Função para calcular a página do PDF baseado na issue
+  const calculatePageFromIssue = useCallback((issue: Issue | null): number => {
+    if (!issue || !templateStructure || !documentStructure) return 1;
+    
+    // Se a issue já tem pageNumber, usar ele
+    if (issue.location.pageNumber) {
+      return issue.location.pageNumber;
+    }
+    
+    // Para PDFs, calcular página aproximada baseado no blockIndex
+    const isPdf = templateStructure.fileType === 'pdf' || documentStructure.fileType === 'pdf';
+    if (!isPdf) return 1;
+    
+    const structure = templateStructure.fileType === 'pdf' ? templateStructure : documentStructure;
+    const totalPages = structure.pageCount || 1;
+    
+    // Calcular total de parágrafos até a seção atual
+    let totalParasBefore = 0;
+    if (issue.location.section === 'header') {
+      totalParasBefore = 0;
+    } else if (issue.location.section === 'body') {
+      totalParasBefore = (templateStructure.sections.header?.paragraphs.length || 0);
+    } else if (issue.location.section === 'footer') {
+      totalParasBefore = (templateStructure.sections.header?.paragraphs.length || 0) +
+                         (templateStructure.sections.body?.paragraphs.length || 0);
+    }
+    
+    const currentBlockIndex = totalParasBefore + issue.location.blockIndex;
+    
+    // Estimar parágrafos por página (aproximação: 10-15 parágrafos por página)
+    const parasPerPage = 12;
+    const estimatedPage = Math.max(1, Math.min(totalPages, Math.floor(currentBlockIndex / parasPerPage) + 1));
+    
+    return estimatedPage;
+  }, [templateStructure, documentStructure]);
+
+  const handleIssueSelect = useCallback((issue: Issue | null) => {
+    setSelectedIssue(issue);
+    if (issue) {
+      const page = calculatePageFromIssue(issue);
+      setCurrentPage(page);
+      
+      // Atualizar índice da issue selecionada
+      const index = filteredIssues.findIndex(i => i.id === issue.id);
+      if (index >= 0) {
+        setCurrentIssueIndex(index);
+      }
+      
+      // Scroll to element - usar window.setTimeout para garantir que o DOM está pronto
+      if (typeof window !== 'undefined') {
+        window.setTimeout(() => {
+          const element = document.querySelector(`[data-index="${issue.location.blockIndex}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+      }
+    } else {
+      setCurrentIssueIndex(-1);
+    }
+  }, [filteredIssues, calculatePageFromIssue]);
+
   const navigateToIssue = useCallback((direction: 'next' | 'prev') => {
     if (filteredIssues.length === 0) return;
     
@@ -133,18 +196,8 @@ export function Compare() {
     
     setCurrentIssueIndex(newIndex);
     const issue = filteredIssues[newIndex];
-    setSelectedIssue(issue);
-    
-    // Scroll to element - usar window.setTimeout para garantir que o DOM está pronto
-    if (typeof window !== 'undefined') {
-      window.setTimeout(() => {
-        const element = document.querySelector(`[data-index="${issue.location.blockIndex}"]`);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
-    }
-  }, [filteredIssues, currentIssueIndex]);
+    handleIssueSelect(issue);
+  }, [filteredIssues, currentIssueIndex, handleIssueSelect]);
 
   useEffect(() => {
     if (scrollSync && templatePreviewRef.current && documentPreviewRef.current) {
@@ -242,10 +295,12 @@ export function Compare() {
                   document={null}
                   templateFile={templateFile}
                   selectedIssue={selectedIssue}
-                  onIssueSelect={setSelectedIssue}
+                  onIssueSelect={handleIssueSelect}
                   scrollSync={scrollSync}
                   showOnlyDifferences={showOnlyDifferences}
                   differences={filteredIssues}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
                 />
               </div>
               <div className="compare-preview-column" ref={documentPreviewRef}>
@@ -254,10 +309,12 @@ export function Compare() {
                   document={documentStructure}
                   documentFile={documentFile}
                   selectedIssue={selectedIssue}
-                  onIssueSelect={setSelectedIssue}
+                  onIssueSelect={handleIssueSelect}
                   scrollSync={scrollSync}
                   showOnlyDifferences={showOnlyDifferences}
                   differences={filteredIssues}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
                 />
               </div>
               <div className="compare-diff-column">
@@ -273,7 +330,7 @@ export function Compare() {
                 <DiffPanel
                   issues={result.issues || []}
                   selectedIssue={selectedIssue}
-                  onIssueSelect={setSelectedIssue}
+                  onIssueSelect={handleIssueSelect}
                   selectedSeverities={selectedSeverities}
                   selectedCategories={selectedCategories}
                   searchText={searchText}
